@@ -1,0 +1,36 @@
+# Environment
+.env
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Audio files
+audio_cache/
+*.mp3
+*.wav
+*.ogg
+
+# Database
+*.db
+*.sqlite
+
+# System
+.DS_Store
+Thumbs.db
