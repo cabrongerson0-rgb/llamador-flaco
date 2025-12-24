@@ -322,15 +322,15 @@ class VoIPManager:
         try:
             timestamp = datetime.now().strftime("%H:%M:%S")
             
-            message = f"""
-┌─────────────────────────
-│ ✅ **LLAMADA CONTESTADA**
-│
-│ 📞 Número: `{phone_number}`
-│ ⏰ Hora: {timestamp}
-│ 🆔 ID: `{call_sid[:12]}`
-└─────────────────────────
-🎧 **Escuchando...**
+            message = f"""━━━━━━━━━━━━━━━━━━━━━━━
+✅ **LLAMADA ACTIVA**
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 **Número:** `{phone_number}`
+⏰ **Inicio:** {timestamp}
+🆔 **ID:** `{call_sid[:12]}`
+
+🎧 *Cliente en línea, escuchando...*
 """
             await self.caller_bot.telegram_bot.send_message(
                 telegram_chat_id,
@@ -345,7 +345,11 @@ class VoIPManager:
             timestamp = datetime.now().strftime("%H:%M:%S")
             call_id = phone_number if phone_number and phone_number != 'Desconocido' else "N/A"
             
-            message = f"🤖 **LLAMADOR EL LOBO HR** [`{call_id}`] [{timestamp}]\n\n{text}"
+            message = f"""🤖 **LLAMADOR EL LOBO HR** • `{call_id}`
+⏰ {timestamp}
+
+💬 {text}
+━━━━━━━━━━━━━━━━━"""
             await self.caller_bot.telegram_bot.send_message(
                 telegram_chat_id,
                 message
@@ -394,7 +398,11 @@ class VoIPManager:
             phone_number = self.active_calls[call_sid].get('number', 'Desconocido')
             
             try:
-                message = f"{emoji} **CLIENTE** [`{phone_number}`] [{timestamp}] _({input_type})_\n\n“_{speech_text}_”"
+                message = f"""{emoji} **CLIENTE** • `{phone_number}`
+⏰ {timestamp} • _{input_type}_
+
+💭 \"{speech_text}\"
+━━━━━━━━━━━━━━━━━"""
                 await self.caller_bot.telegram_bot.send_message(
                     telegram_chat_id,
                     message
@@ -473,11 +481,15 @@ class VoIPManager:
                 phone_number = self.active_calls[call_sid].get('number', 'Desconocido')
                 timestamp = datetime.now().strftime("%H:%M:%S")
                 
-                message = f"""
-⚠️ **LLAMADA FINALIZADA** [`{phone_number}`]
-📱 {phone_number}
-⏰ {timestamp}
-❌ Sin respuesta del cliente
+                message = f"""━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ **LLAMADA FINALIZADA**
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 **Número:** `{phone_number}`
+⏰ **Fin:** {timestamp}
+❌ **Motivo:** Cliente no responde
+
+🔴 *Llamada terminada*
 """
                 await self.caller_bot.telegram_bot.send_message(
                     telegram_chat_id,
@@ -505,7 +517,11 @@ class VoIPManager:
             telegram_chat_id = self.active_calls[call_sid]['telegram_chat_id']
             phone_number = self.active_calls[call_sid].get('number', 'Desconocido')
             
-            message = f"🔇 [`{phone_number}`] Sin respuesta ({current_attempts}/{max_attempts})\n🤖 Preguntando: _{question}_"
+            message = f"""🔇 **SIN RESPUESTA** • `{phone_number}`
+
+⚠️ Intento {current_attempts}/{max_attempts}
+🔄 Repreguntando: *\"{question}\"*
+"""
             await self.caller_bot.telegram_bot.send_message(
                 telegram_chat_id,
                 message
@@ -531,17 +547,17 @@ class VoIPManager:
             
             # Mapeo de estados a mensajes con emojis
             status_messages = {
-                'initiated': f'📞 [`{phone_number}`] Llamada iniciada',
-                'ringing': f'📱 [`{phone_number}`] Timbrando...',
-                'in-progress': f'✅ [`{phone_number}`] En curso',
-                'completed': f'🔴 [`{phone_number}`] Finalizada',
-                'failed': f'❌ [`{phone_number}`] Fallida',
-                'busy': f'📵 [`{phone_number}`] Ocupado',
-                'no-answer': '📭 No contestó',
-                'canceled': '🚫 Cancelada'
+                'initiated': f'📞 **Iniciando** • `{phone_number}`',
+                'ringing': f'📱 **Timbrando...** • `{phone_number}`',
+                'in-progress': f'✅ **En curso** • `{phone_number}`',
+                'completed': f'🔴 **Finalizada** • `{phone_number}`',
+                'failed': f'❌ **Fallida** • `{phone_number}`',
+                'busy': f'📵 **Ocupado** • `{phone_number}`',
+                'no-answer': f'📭 **No contestó** • `{phone_number}`',
+                'canceled': f'🚫 **Cancelada** • `{phone_number}`'
             }
             
-            message = status_messages.get(call_status, f"📊 Estado: {call_status}")
+            message = status_messages.get(call_status, f"📊 **Estado:** `{call_status}` • `{phone_number}`")
             
             # Notificar a Telegram
             await self.caller_bot.telegram_bot.send_message(
