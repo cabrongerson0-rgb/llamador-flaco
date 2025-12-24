@@ -1,5 +1,6 @@
 """Configuración - Sistema de Llamadas Colombia"""
 from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import List
 
 
@@ -60,9 +61,9 @@ class Settings(BaseSettings):
     dtmf_enabled: bool = True  # Activar entrada por teclado
     num_digits: int = 20  # Máximo dígitos DTMF
     
-    # Webhook
+    # Webhook - Railway asigna PORT dinámicamente
     webhook_url: str
-    webhook_port: int = 8000
+    webhook_port: int = Field(default=8000, validation_alias='PORT')
     
     class Config:
         env_file = ".env"

@@ -58,10 +58,12 @@ class CallerBot:
     
     def _run_webhook_server(self):
         """Ejecutar servidor webhook en thread separado"""
+        port = settings.webhook_port
+        logger.info(f"🌐 Servidor usando puerto: {port} (Railway asigna PORT dinámicamente)")
         uvicorn.run(
             app,
             host="0.0.0.0",
-            port=settings.webhook_port,
+            port=port,
             log_level="info"
         )
     
