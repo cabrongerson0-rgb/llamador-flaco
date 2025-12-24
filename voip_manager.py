@@ -173,7 +173,7 @@ class VoIPManager:
     
     async def handle_incoming_call(self, call_sid: str) -> str:
         """
-        Manejar llamada entrante con ElevenLabs (voz natural)
+        Manejar llamada entrante con ElevenLabs - OPTIMIZADO
         
         Args:
             call_sid: ID de la llamada
@@ -184,19 +184,38 @@ class VoIPManager:
         try:
             logger.info(f"📞 Llamada entrante: {call_sid}")
             
-            # Actualizar estado
-            if call_sid in self.active_calls:
+            # Registrar llamada si no existe
+            if call_sid not in self.active_calls:
+                logger.warning(f"⚠️ Llamada {call_sid[:8]} no registrada, creando entrada...")
+                self.active_calls[call_sid] = {
+                    'sid': call_sid,
+                    'number': 'Desconocido',
+                    'telegram_chat_id': None,
+                    'start_time': datetime.now(),
+                    'status': 'answered',
+                    'transcript': []
+                }
+                self.no_speech_attempts[call_sid] = 0
+            else:
                 self.active_calls[call_sid]['status'] = 'answered'
-                telegram_chat_id = self.active_calls[call_sid]['telegram_chat_id']
-                phone_number = self.active_calls[call_sid]['number']
+                telegram_chat_id = self.active_calls[call_sid].get('telegram_chat_id')
+                phone_number = self.active_calls[call_sid].get('number', 'Desconocido')
                 
                 # Notificaciones en background
-                asyncio.create_task(self._notify_call_answered(telegram_chat_id, phone_number, call_sid))
+                if telegram_chat_id:
+                    asyncio.create_task(self._notify_call_answered(telegram_chat_id, phone_number, call_sid))
             
-            # Generar saludo basado en instrucción del usuario
+            # Generar saludo inicial con timeout
             logger.info("🤖 Generando saludo inicial...")
-            initial_message = await self.caller_bot.ai_conversation.get_initial_greeting()
-            logger.info(f"💬 Saludo: {initial_message}")
+            try:
+                initial_message = await asyncio.wait_for(
+                    self.caller_bot.ai_conversation.get_initial_greeting(),
+                    timeout=3.0
+                )
+                logger.info(f"💬 Saludo generado: {initial_message}")
+            except asyncio.TimeoutError:
+                logger.error("⏱️ Timeout generando saludo, usando fallback")
+                initial_message = "Hola buenos días. ¿Me escuchas bien?"
             
             # Registrar
             if call_sid in self.active_calls:
@@ -548,6 +567,30 @@ class VoIPManager:
         """
         logger.error("🚨 ERROR CRÍTICO - Colgando llamada (SIN Polly)")
         response = VoiceResponse()
-        # Colgar INMEDIATAMENTE sin decir nada (no usar Polly)
         response.hangup()
+        return str(response)
+    
+    def _generate_say_twiml(self, message: str) -> str:
+        """
+        Generar TwiML con Say como fallback de emergencia
+        
+        Args:
+            message: Mensaje a decir
+        
+        Returns:
+            TwiML XML con Say
+        """
+        logger.warning(f"⚠️ Usando Say fallback: {message}")
+        response = VoiceResponse()
+        gather = Gather(
+            input='speech dtmf',
+            language='es-CO',
+            timeout=3,
+            speech_timeout='auto',
+            action='/voice/process_speech',
+            method='POST'
+        )
+        gather.say(message, voice='Polly.Mia', language='es-ES')
+        response.append(gather)
+        response.redirect('/voice/process_speech')
         return str(response)

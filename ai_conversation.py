@@ -58,7 +58,7 @@ Tú: "Perfecto. [Continúa con tu rol específico]"
                     ],
                     temperature=0.85,
                     max_tokens=40,
-                    timeout=1.0
+                    timeout=2.0
                 )
                 greeting = response.choices[0].message.content.strip()
                 greeting = greeting.replace('*', '').replace('_', '').replace('"', '').strip()
@@ -88,7 +88,7 @@ Tú: "Perfecto. [Continúa con tu rol específico]"
                 messages=messages,
                 temperature=settings.ai_temperature,
                 max_tokens=30,  # Ultra rápido: 8-12 palabras
-                timeout=0.9,  # Velocidad máxima
+                timeout=2.0,  # Timeout confiable
                 presence_penalty=0.4,  # Evita repeticiones
                 frequency_penalty=0.5  # No repetir frases
             )

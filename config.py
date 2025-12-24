@@ -35,11 +35,11 @@ class Settings(BaseSettings):
     voice_style: float = 0.80      # Muy expresiva y profesional
     voice_speaker_boost: bool = True  # Claridad perfecta en llamadas
     
-    # IA para conversación ULTRA RÁPIDA (CERO DELAY)
+    # IA para conversación ULTRA RÁPIDA (CONFIABLE)
     ai_model: str = "gpt-4o-mini"  # Modelo más rápido
     ai_temperature: float = 0.9  # Natural y consistente
     ai_max_tokens: int = 30  # Respuestas ultra rápidas 8-15 palabras
-    ai_timeout: float = 0.8  # Velocidad máxima
+    ai_timeout: float = 2.5  # Timeout más generoso para confiabilidad
     
     # Llamadas optimizadas - VELOCIDAD + ESCUCHA PERFECTA
     gather_timeout: int = 3  # 3 segundos - balance perfecto
