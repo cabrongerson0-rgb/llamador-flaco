@@ -1,6 +1,5 @@
 """Configuración - Sistema de Llamadas Colombia"""
 from pydantic_settings import BaseSettings
-from pydantic import Field
 from typing import List
 
 
@@ -36,18 +35,18 @@ class Settings(BaseSettings):
     voice_style: float = 0.80      # Muy expresiva y profesional
     voice_speaker_boost: bool = True  # Claridad perfecta en llamadas
     
-    # IA para conversación ULTRA RÁPIDA (CONFIABLE)
+    # IA para conversación PROFESIONAL Y NATURAL
     ai_model: str = "gpt-4o-mini"  # Modelo más rápido
-    ai_temperature: float = 0.9  # Natural y consistente
-    ai_max_tokens: int = 35  # Respuestas completas pero ágiles 10-18 palabras
-    ai_timeout: float = 1.5  # Timeout reducido para respuestas instantáneas
+    ai_temperature: float = 0.85  # Profesional y natural (reducido de 0.9)
+    ai_max_tokens: int = 30  # Respuestas ultra rápidas 8-15 palabras
+    ai_timeout: float = 2.5  # Timeout más generoso para confiabilidad
     
-    # Llamadas optimizadas - ESCUCHA PERFECTA + VELOCIDAD
-    gather_timeout: int = 2  # 2 segundos - más ágil para empezar
-    speech_timeout: str = "auto"  # auto - detección inteligente cuando termina
-    max_speech_time: int = 50  # 50 segundos - capturar respuestas largas completas
+    # Llamadas optimizadas - ESPERA PACIENTE + RESPUESTA INMEDIATA
+    gather_timeout: int = 6  # 6 segundos - esperar más a que empiece a hablar
+    speech_timeout: str = "auto"  # auto = detecta cuando terminas de hablar
+    max_speech_time: int = 50  # 50 segundos - capturar respuestas largas
     max_concurrent_calls: int = 50  # Soportar más llamadas
-    no_speech_attempts: int = 3  # 3 intentos antes de colgar (más rápido)
+    no_speech_attempts: int = 2  # Solo 2 intentos - no molestar
     profanity_filter: bool = False
     
     # Reconocimiento de voz optimizado para COLOMBIA
@@ -61,9 +60,9 @@ class Settings(BaseSettings):
     dtmf_enabled: bool = True  # Activar entrada por teclado
     num_digits: int = 20  # Máximo dígitos DTMF
     
-    # Webhook - Railway usa PORT variable de entorno
+    # Webhook
     webhook_url: str
-    webhook_port: int = Field(default=8000, validation_alias='PORT')
+    webhook_port: int = 8000
     
     class Config:
         env_file = ".env"

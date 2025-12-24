@@ -58,12 +58,10 @@ class CallerBot:
     
     def _run_webhook_server(self):
         """Ejecutar servidor webhook en thread separado"""
-        port = settings.webhook_port
-        logger.info(f"🌐 Servidor iniciando en puerto: {port}")
         uvicorn.run(
             app,
             host="0.0.0.0",
-            port=port,
+            port=settings.webhook_port,
             log_level="info"
         )
     
