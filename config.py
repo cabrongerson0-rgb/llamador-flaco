@@ -17,11 +17,11 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str
     
     # ========================================
-    # VOZ KELLY ORTIZ - ASESORA PROFESIONAL
+    # VOZ LLAMADOR EL LOBO HR - ASESORA PROFESIONAL
     # ========================================
     
-    # Voz de Kelly Ortiz - Natural, expresiva y profesional
-    voice_bot: str = "7h1bGU3p2v8oSDwv8Ivg"  # Kelly Ortiz
+    # Voz de LLAMADOR EL LOBO HR - Natural, expresiva y profesional
+    voice_bot: str = "7h1bGU3p2v8oSDwv8Ivg"  # LLAMADOR EL LOBO HR
     default_voice_id: str = "7h1bGU3p2v8oSDwv8Ivg"
     
     # OPCIÓN 2: Para CLONAR TU PROPIA VOZ:
@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     # 3. Copia el Voice ID generado
     # 4. Pégalo arriba en voice_bot y default_voice_id
     
-    # SETTINGS KELLY ORTIZ - VOZ PERFECTA Y NATURAL
+    # SETTINGS LLAMADOR EL LOBO HR - VOZ PERFECTA Y NATURAL
     voice_stability: float = 0.85  # Estabilidad alta para naturalidad
-    voice_similarity: float = 0.95  # Máxima similitud con Kelly Ortiz
+    voice_similarity: float = 0.95  # Máxima similitud con LLAMADOR EL LOBO HR
     voice_style: float = 0.80      # Muy expresiva y profesional
     voice_speaker_boost: bool = True  # Claridad perfecta en llamadas
     

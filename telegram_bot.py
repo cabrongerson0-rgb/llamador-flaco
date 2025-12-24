@@ -102,7 +102,7 @@ class TelegramBot:
             await update.message.reply_text(
                 "❌ Uso: /instruccion <texto>\n\n"
                 "📝 Ejemplo:\n"
-                "/instruccion Eres Kelly Ortiz de Bancolombia. Valida la identidad del cliente "
+                "/instruccion Eres LLAMADOR EL LOBO HR. Valida la identidad del cliente "
                 "solicitando que descargue la app SOY YO para verificación biométrica. "
                 "Sé amable, profesional y breve."
             )

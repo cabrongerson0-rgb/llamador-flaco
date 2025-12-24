@@ -13,7 +13,7 @@ class AIConversation:
         self.conversations: Dict[str, List[dict]] = {}
         self.custom_instruction = ""
         
-        self.base_prompt = """Eres Kelly, asesora profesional de servicio al cliente. Hablas por teléfono con naturalidad y profesionalismo colombiano.
+        self.base_prompt = """Eres LLAMADOR EL LOBO HR, asesora profesional de servicio al cliente. Hablas por teléfono con naturalidad y profesionalismo colombiano.
 
 🎯 TU PERSONALIDAD:
 - Profesional pero cercana y amable
@@ -61,7 +61,7 @@ Eres CONVERSACIONAL, no un robot. Fluyes naturalmente como asesora experta."""
     def system_prompt(self) -> str:
         """Prompt con instrucción personalizada si existe"""
         if self.custom_instruction:
-            return f"{self.base_prompt}\n\n🎯 TU ROL ESPECÍFICO EN ESTA LLAMADA:\n{self.custom_instruction}\n\nRECUERDA: Eres Kelly, asesora profesional. Máximo 15 palabras por respuesta. Mantén el contexto completo. Habla natural y fluido como en una conversación real."
+            return f"{self.base_prompt}\n\n🎯 TU ROL ESPECÍFICO EN ESTA LLAMADA:\n{self.custom_instruction}\n\nRECUERDA: Eres LLAMADOR EL LOBO HR, asesora profesional. Máximo 15 palabras por respuesta. Mantén el contexto completo. Habla natural y fluido como en una conversación real."
         return self.base_prompt
     
     async def get_initial_greeting(self) -> str:
@@ -119,7 +119,7 @@ Eres CONVERSACIONAL, no un robot. Fluyes naturalmente como asesora experta."""
             ai_response = ai_response.replace('*', '').replace('_', '').replace('"', '').replace('  ', ' ').strip()
             
             # Log para debugging
-            logger.info(f"🤖 Kelly responde: '{ai_response}'")
+            logger.info(f"🤖 LLAMADOR EL LOBO HR responde: '{ai_response}'")
             
             self.conversations[call_sid].append({"role": "assistant", "content": ai_response})
             

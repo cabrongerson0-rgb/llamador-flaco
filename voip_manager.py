@@ -345,7 +345,7 @@ class VoIPManager:
             timestamp = datetime.now().strftime("%H:%M:%S")
             call_id = phone_number if phone_number and phone_number != 'Desconocido' else "N/A"
             
-            message = f"🤖 **KELLY** [`{call_id}`] [{timestamp}]\n\n{text}"
+            message = f"🤖 **LLAMADOR EL LOBO HR** [`{call_id}`] [{timestamp}]\n\n{text}"
             await self.caller_bot.telegram_bot.send_message(
                 telegram_chat_id,
                 message

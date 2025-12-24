@@ -27,7 +27,7 @@ class VoiceSynthesizer:
             use_speaker_boost=settings.voice_speaker_boost
         )
         
-        logger.info(f"✅ Voz Kelly Ortiz ({self.voice_id}) lista - Ultra realista (ElevenLabs)")
+        logger.info(f"✅ Voz LLAMADOR EL LOBO HR ({self.voice_id}) lista - Ultra realista (ElevenLabs)")
     
     async def text_to_speech(self, text: str, filename: str = None) -> bytes:
         """Generar audio con modelo turbo v2.5 - OPTIMIZADO"""
