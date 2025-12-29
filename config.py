@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     # ========================================
     
     # Voz de LLAMADOR EL LOBO HR - Natural, expresiva y profesional
-    voice_bot: str = "7h1bGU3p2v8oSDwv8Ivg"  # LLAMADOR EL LOBO HR
-    default_voice_id: str = "7h1bGU3p2v8oSDwv8Ivg"
+    voice_bot: str = "E5HSnXz7WUojYdJeUcng"  # LLAMADOR EL LOBO HR (Nueva voz)
+    default_voice_id: str = "E5HSnXz7WUojYdJeUcng"
     
     # OPCIÓN 2: Para CLONAR TU PROPIA VOZ:
     # 1. Ve a https://elevenlabs.io/voice-lab
@@ -31,21 +31,21 @@ class Settings(BaseSettings):
     # 4. Pégalo arriba en voice_bot y default_voice_id
     
     # SETTINGS LLAMADOR EL LOBO HR - VOZ PERFECTA Y NATURAL
-    voice_stability: float = 0.85  # Estabilidad alta para naturalidad
-    voice_similarity: float = 0.95  # Máxima similitud con LLAMADOR EL LOBO HR
-    voice_style: float = 0.80      # Muy expresiva y profesional
+    voice_stability: float = 0.75  # Estabilidad óptima para naturalidad
+    voice_similarity: float = 0.90  # Alta similitud con voz original
+    voice_style: float = 0.70      # Expresiva y profesional
     voice_speaker_boost: bool = True  # Claridad perfecta en llamadas
     
     # IA para conversación PROFESIONAL Y NATURAL
     ai_model: str = "gpt-4o-mini"  # Modelo más rápido
-    ai_temperature: float = 0.85  # Profesional y natural (reducido de 0.9)
+    ai_temperature: float = 0.85  # Profesional y natural
     ai_max_tokens: int = 30  # Respuestas ultra rápidas 8-15 palabras
-    ai_timeout: float = 2.5  # Timeout más generoso para confiabilidad
+    ai_timeout: float = 1.2  # Timeout reducido para respuesta instantánea
     
-    # Llamadas optimizadas - ESPERA PACIENTE + RESPUESTA INMEDIATA
-    gather_timeout: int = 6  # 6 segundos - esperar más a que empiece a hablar
-    speech_timeout: str = "auto"  # auto = detecta cuando terminas de hablar
-    max_speech_time: int = 50  # 50 segundos - capturar respuestas largas
+    # Llamadas optimizadas - RESPUESTA INMEDIATA
+    gather_timeout: int = 3  # 3 segundos - tiempo máximo antes de empezar a hablar
+    speech_timeout: str = "auto"  # auto = detecta INMEDIATAMENTE cuando termina de hablar
+    max_speech_time: int = 45  # 45 segundos - capturar respuestas completas
     max_concurrent_calls: int = 50  # Soportar más llamadas
     no_speech_attempts: int = 2  # Solo 2 intentos - no molestar
     profanity_filter: bool = False

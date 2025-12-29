@@ -30,10 +30,7 @@ class VoiceSynthesizer:
         logger.info(f"✅ Voz LLAMADOR EL LOBO HR ({self.voice_id}) lista - Ultra realista (ElevenLabs)")
     
     async def text_to_speech(self, text: str, filename: str = None) -> bytes:
-        """Generar audio con modelo turbo v2.5 - OPTIMIZADO"""
-        import asyncio
-        from functools import partial
-        
+        """Generar audio con modelo turbo v2.5 - OPTIMIZADO PARA VELOCIDAD"""
         # Reintentar hasta 3 veces
         for attempt in range(3):
             try:
@@ -51,7 +48,7 @@ class VoiceSynthesizer:
                             model="eleven_turbo_v2_5"
                         )
                     ),
-                    timeout=8.0  # Timeout de 8 segundos
+                    timeout=5.0  # Timeout reducido a 5 segundos para respuesta más rápida
                 )
                 
                 # Convertir a bytes
@@ -61,24 +58,24 @@ class VoiceSynthesizer:
                 if not audio_bytes or len(audio_bytes) < 1000:
                     raise Exception(f"Audio muy pequeño: {len(audio_bytes) if audio_bytes else 0} bytes")
                 
-                # Guardar archivo
+                # Guardar archivo solo si se especifica
                 if filename:
                     filepath = os.path.join(self.audio_dir, filename)
                     with open(filepath, 'wb') as f:
                         f.write(audio_bytes)
-                    logger.info(f"✅ Audio guardado: {len(audio_bytes)} bytes")
                 
+                logger.info(f"✅ Audio generado: {len(audio_bytes)} bytes")
                 return audio_bytes
                 
             except asyncio.TimeoutError:
                 logger.error(f"⏱️ Timeout en intento {attempt + 1}/3")
                 if attempt < 2:
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.3)
                     continue
                 raise Exception("ElevenLabs timeout después de 3 intentos")
             except Exception as e:
                 logger.error(f"❌ Error en intento {attempt + 1}/3: {e}")
                 if attempt < 2:
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.3)
                     continue
                 raise

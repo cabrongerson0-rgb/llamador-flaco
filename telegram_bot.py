@@ -3,6 +3,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 from loguru import logger
 from config import settings
 from typing import TYPE_CHECKING
+from call_flows import CallFlows
 
 if TYPE_CHECKING:
     from main import CallerBot
@@ -13,11 +14,13 @@ class TelegramBot:
         self.caller_bot = caller_bot
         self.app = Application.builder().token(settings.telegram_bot_token).build()
         self.saved_instructions = {}  # Diccionario para guardar instrucciones
+        self.current_flow = {}  # Diccionario para rastrear flujo activo por chat
         self._setup_handlers()
     
     def _setup_handlers(self):
         """Comandos simplificados - Solo lo esencial"""
         self.app.add_handler(CommandHandler("start", self.start_command))
+        self.app.add_handler(CommandHandler("flujos", self.flows_command))
         self.app.add_handler(CommandHandler("llamar", self.call_command))
         self.app.add_handler(CommandHandler("masivo", self.mass_call_command))
         self.app.add_handler(CommandHandler("activas", self.active_calls_command))
@@ -41,21 +44,27 @@ class TelegramBot:
             await update.message.reply_text("❌ Este grupo/usuario no tiene autorización.")
             return
         
-        welcome_message = """📞 LLAMADOR
+        welcome_message = """📞 **LLAMADOR EL LOBO HR**
 
-🎯 COMANDOS:
+🎯 **COMANDOS PRINCIPALES:**
+/flujos - 🏦 Seleccionar flujo bancario
 /llamar +57312... - Hacer llamada
 /masivo +num1 +num2 - Llamadas múltiples
 /activas - Ver llamadas activas
 /colgar - Colgar todas
 
-📝 PERSONALIZAR IA:
+📝 **PERSONALIZAR IA:**
 /instruccion <texto> - Cambiar comportamiento
 
-💡 Ejemplo:
-/instruccion Eres Kelly Ortiz de Bancolombia, valida identidad del cliente con app SOY YO
-/llamar +573012345678"""
-        await update.message.reply_text(welcome_message)
+🏦 **FLUJOS DISPONIBLES:**
+• Bancolombia - Validación con app y clave dinámica
+• Davivienda - Validación con clave virtual
+
+💡 **Ejemplo de uso:**
+1. /flujos → Selecciona Bancolombia
+2. /llamar +573012345678
+3. La IA seguirá el flujo automáticamente"""
+        await update.message.reply_text(welcome_message, parse_mode='Markdown')
     
     async def call_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Comando /llamar"""
@@ -104,7 +113,8 @@ class TelegramBot:
                 "📝 Ejemplo:\n"
                 "/instruccion Eres LLAMADOR EL LOBO HR. Valida la identidad del cliente "
                 "solicitando que descargue la app SOY YO para verificación biométrica. "
-                "Sé amable, profesional y breve."
+                "Sé amable, profesional y breve.\n\n"
+                "💡 Tip: Usa /flujos para flujos predefinidos de Bancolombia y Davivienda"
             )
             return
         
@@ -113,17 +123,59 @@ class TelegramBot:
         
         try:
             self.caller_bot.ai_conversation.set_custom_prompt(custom_instruction)
+            # Limpiar flujo activo si se usa instrucción manual
+            chat_id = update.effective_chat.id
+            if chat_id in self.current_flow:
+                del self.current_flow[chat_id]
             
             await update.message.reply_text(
                 f"✅ Instrucción Configurada\n\n"
                 f"📝 {custom_instruction}\n\n"
-                f"👉 IA seguira estas instruccion"
+                f"👉 IA seguirá estas instrucciones"
             )
             
             logger.info(f"Instrucción configurada: {custom_instruction[:80]}...")
             
         except Exception as e:
             await update.message.reply_text(f"❌ Error: {str(e)}")
+    
+    async def flows_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Comando /flujos - Seleccionar flujo bancario predefinido"""
+        if not self._is_admin_or_group(update.effective_chat.id):
+            return
+        
+        # Crear botones para cada flujo disponible
+        keyboard = []
+        for flow_name in CallFlows.get_available_flows():
+            flow = CallFlows.get_flow(flow_name)
+            button = InlineKeyboardButton(
+                f"{flow['icon']} {flow['name']}",
+                callback_data=f"flow_{flow_name}"
+            )
+            keyboard.append([button])
+        
+        # Botón para limpiar flujo
+        keyboard.append([InlineKeyboardButton("🔄 Limpiar Flujo", callback_data="flow_clear")])
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        message = """🏦 **FLUJOS BANCARIOS DISPONIBLES**
+
+Selecciona el flujo que deseas usar para las llamadas:
+
+🏦 **Bancolombia**
+• Validación completa con app
+• Usuario + Clave principal + Clave dinámica
+• 3 intentos para clave dinámica
+
+🏛️ **Davivienda**
+• Validación con clave virtual
+• Documento + Clave virtual
+• 3 intentos para clave virtual
+
+💡 Una vez seleccionado, todas las llamadas seguirán ese flujo automáticamente."""
+        
+        await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
     
     async def mass_call_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Comando /masivo - Llamar a múltiples números simultáneamente"""
@@ -269,6 +321,44 @@ class TelegramBot:
         """Manejar callbacks de botones"""
         query = update.callback_query
         await query.answer()
+        
+        # Manejar selección de flujos
+        if query.data.startswith("flow_"):
+            flow_name = query.data.split("_", 1)[1]
+            chat_id = update.effective_chat.id
+            
+            if flow_name == "clear":
+                # Limpiar flujo activo
+                if chat_id in self.current_flow:
+                    del self.current_flow[chat_id]
+                self.caller_bot.ai_conversation.set_custom_prompt("")
+                await query.edit_message_text("🔄 Flujo limpiado. IA volverá al comportamiento por defecto.")
+                logger.info(f"Flujo limpiado para chat {chat_id}")
+                return
+            
+            # Configurar flujo seleccionado
+            flow = CallFlows.get_flow(flow_name)
+            if not flow:
+                await query.edit_message_text("❌ Flujo no encontrado")
+                return
+            
+            # Guardar flujo activo para este chat
+            self.current_flow[chat_id] = flow_name
+            
+            # Configurar prompt de IA
+            self.caller_bot.ai_conversation.set_custom_prompt(flow["prompt"])
+            
+            await query.edit_message_text(
+                f"✅ **Flujo Activado**\n\n"
+                f"{flow['icon']} **{flow['name']}**\n"
+                f"{flow['description']}\n\n"
+                f"💡 Ahora puedes hacer llamadas con /llamar o /masivo\n"
+                f"La IA seguirá automáticamente el flujo de {flow['name']}",
+                parse_mode='Markdown'
+            )
+            
+            logger.info(f"Flujo {flow_name} activado para chat {chat_id}")
+            return
         
         if query.data.startswith("hangup_"):
             call_sid = query.data.split("_", 1)[1]

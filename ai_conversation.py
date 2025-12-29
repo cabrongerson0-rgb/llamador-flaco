@@ -109,7 +109,7 @@ Eres CONVERSACIONAL, no un robot. Fluyes naturalmente como asesora experta."""
                 messages=messages,
                 temperature=settings.ai_temperature,
                 max_tokens=35,  # Respuestas completas: 10-18 palabras
-                timeout=1.5,  # ULTRA RÁPIDO - respuesta inmediata
+                timeout=settings.ai_timeout,  # Timeout optimizado desde config
                 presence_penalty=0.7,  # Fomenta variedad y evita repeticiones
                 frequency_penalty=0.8  # Penaliza fuertemente frases repetidas
             )
