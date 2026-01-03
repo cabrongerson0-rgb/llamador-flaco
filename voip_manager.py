@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Dict, List, TYPE_CHECKING
 import asyncio
 import time
+import os
 
 if TYPE_CHECKING:
     from main import CallerBot
@@ -241,9 +242,13 @@ class VoIPManager:
             
         except Exception as e:
             logger.error(f"🚨 ERROR CRÍTICO en handle_incoming_call: {e}", exc_info=True)
-            # Fallback robusto con Say
-            logger.warning("🔄 Usando fallback con Polly.Mia")
-            return self._generate_say_twiml("Hola buenos días. ¿Me escuchas bien?")
+            # Fallback usando TAMBIÉN ElevenLabs con mensaje simple
+            logger.warning("🔄 Usando fallback con ElevenLabs")
+            try:
+                return await self.generate_elevenlabs_twiml("Hola buenas. ¿Me escuchas bien?", call_sid)
+            except:
+                # Si incluso ElevenLabs falla, usar Say
+                return self._generate_say_twiml("Hola buenas. ¿Me escuchas bien?")
     
     async def generate_elevenlabs_twiml(self, text: str, call_sid: str) -> str:
         """
@@ -498,7 +503,15 @@ class VoIPManager:
             
             # Despedida breve y colgar
             response = VoiceResponse()
-            response.say("Gracias, hasta luego.", language='es', voice='Polly.Mia')
+            # Intentar usar ElevenLabs incluso para despedida
+            try:
+                import base64
+                audio_bytes = await self.caller_bot.voice_synthesizer.text_to_speech("Gracias, hasta luego.")
+                audio_url = f"{settings.webhook_url}/audio/goodbye_{call_sid[:8]}.mp3"
+                response.play(audio_url)
+            except:
+                # Si falla, usar Say
+                response.say("Gracias, hasta luego.", language='es-CO', voice='Polly.Mia')
             response.hangup()
             return str(response)
         
@@ -620,18 +633,43 @@ class VoIPManager:
     
     def _generate_error_twiml(self) -> str:
         """
-        Error crítico - Mensaje en ESPAÑOL antes de colgar
+        Error crítico - Intentar usar ElevenLabs primero, luego Say en español
         
         Returns:
-            TwiML de error en español que informa antes de colgar
+            TwiML de error en español usando ElevenLabs si es posible
         """
-        logger.error("🚨 ERROR CRÍTICO - Mensaje en español y colgando")
+        logger.error("🚨 ERROR CRÍTICO - Intentando mensaje con ElevenLabs")
         response = VoiceResponse()
-        response.say(
-            "Disculpa, estamos presentando inconvenientes técnicos. Por favor intenta más tarde. Hasta luego.",
-            language='es-CO',
-            voice='Polly.Mia'
-        )
+        
+        # Intentar generar audio con ElevenLabs para mensaje de error
+        try:
+            import asyncio
+            loop = asyncio.get_event_loop()
+            error_msg = "Disculpa, estamos presentando inconvenientes técnicos. Por favor intenta más tarde. Hasta luego."
+            
+            # Ejecutar síntesis de forma síncrona
+            audio_bytes = loop.run_until_complete(
+                self.caller_bot.voice_synthesizer.text_to_speech(error_msg)
+            )
+            
+            # Guardar y reproducir
+            import time
+            audio_filename = f"error_{int(time.time())}.mp3"
+            audio_path = os.path.join("audio_cache", audio_filename)
+            with open(audio_path, 'wb') as f:
+                f.write(audio_bytes)
+            
+            audio_url = f"{settings.webhook_url}/audio/{audio_filename}"
+            response.play(audio_url)
+            logger.info("✅ Mensaje de error generado con ElevenLabs")
+        except Exception as e:
+            logger.error(f"❌ No se pudo usar ElevenLabs para error: {e}, usando Say")
+            response.say(
+                "Disculpa, estamos presentando inconvenientes técnicos. Por favor intenta más tarde. Hasta luego.",
+                language='es-CO',
+                voice='Polly.Mia'
+            )
+        
         response.hangup()
         return str(response)
     

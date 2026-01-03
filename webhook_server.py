@@ -195,6 +195,11 @@ async def process_speech(
         # Si no hay entrada, preguntar de nuevo
         if not user_input or user_input.strip() == "":
             logger.warning(f"⚠️ Sin entrada para {CallSid}")
+            if caller_bot:
+                return Response(
+                    content=await caller_bot.voip_manager.generate_followup_question(CallSid),
+                    media_type="application/xml"
+                )
             # Si no hay bot, colgar en español
             response = VoiceResponse()
             response.say(
@@ -203,17 +208,17 @@ async def process_speech(
                 voice='Polly.Mia'
             )
             response.hangup()
-            return Response(content=str(response), media_type="application/xml"        media_type="application/xml"
-                )
-            return Response(
-                content="<Response><Hangup/></Response>",
-                media_type="application/xml"
-            )
+            return Response(content=str(response), media_type="application/xml")
         
         if caller_bot:
             # Procesar entrada (voz o DTMF)
             twiml = await caller_bot.voip_manager.handle_speech_input(
                 CallSid, 
+                user_input,
+                input_type
+            )
+            return Response(content=twiml, media_type="application/xml")
+        else:
             # Sin bot, colgar en español
             response = VoiceResponse()
             response.say(
@@ -234,12 +239,7 @@ async def process_speech(
             voice='Polly.Mia'
         )
         response.hangup()
-        return Response(content=str(response), media_type="application/xml"pt Exception as e:
-        logger.error(f"Error procesando entrada: {e}")
-        return Response(
-            content="<Response><Hangup/></Response>",
-            media_type="application/xml"
-        )
+        return Response(content=str(response), media_type="application/xml")
 
 
 @app.post("/voice/status")
