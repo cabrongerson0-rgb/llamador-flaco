@@ -40,12 +40,12 @@ class Settings(BaseSettings):
     ai_model: str = "gpt-4o-mini"  # Modelo más rápido
     ai_temperature: float = 0.85  # Profesional y natural
     ai_max_tokens: int = 30  # Respuestas ultra rápidas 8-15 palabras
-    ai_timeout: float = 1.2  # Timeout reducido para respuesta instantánea
+    ai_timeout: float = 1.5  # Timeout optimizado para confiabilidad
     
-    # Llamadas optimizadas - RESPUESTA INMEDIATA
-    gather_timeout: int = 3  # 3 segundos - tiempo máximo antes de empezar a hablar
-    speech_timeout: str = "auto"  # auto = detecta INMEDIATAMENTE cuando termina de hablar
-    max_speech_time: int = 45  # 45 segundos - capturar respuestas completas
+    # Llamadas optimizadas - ESCUCHA PERFECTA Y RESPUESTA INMEDIATA
+    gather_timeout: int = 5  # 5 segundos - tiempo para que empiece a hablar
+    speech_timeout: int = 1  # 1 segundo - cuánto silencio indica que terminó
+    max_speech_time: int = 60  # 60 segundos - tiempo máximo por respuesta
     max_concurrent_calls: int = 50  # Soportar más llamadas
     no_speech_attempts: int = 2  # Solo 2 intentos - no molestar
     profanity_filter: bool = False

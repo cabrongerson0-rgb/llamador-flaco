@@ -30,7 +30,7 @@ class VoiceSynthesizer:
         logger.info(f"✅ Voz LLAMADOR EL LOBO HR ({self.voice_id}) lista - Ultra realista (ElevenLabs)")
     
     async def text_to_speech(self, text: str, filename: str = None) -> bytes:
-        """Generar audio con modelo turbo v2.5 - OPTIMIZADO PARA VELOCIDAD"""
+        """Generar audio con modelo turbo v2.5 - OPTIMIZADO PARA VELOCIDAD MÁXIMA"""
         # Reintentar hasta 3 veces
         for attempt in range(3):
             try:
@@ -48,7 +48,7 @@ class VoiceSynthesizer:
                             model="eleven_turbo_v2_5"
                         )
                     ),
-                    timeout=5.0  # Timeout reducido a 5 segundos para respuesta más rápida
+                    timeout=6.0  # Timeout de 6 segundos para mayor confiabilidad
                 )
                 
                 # Convertir a bytes
@@ -64,18 +64,18 @@ class VoiceSynthesizer:
                     with open(filepath, 'wb') as f:
                         f.write(audio_bytes)
                 
-                logger.info(f"✅ Audio generado: {len(audio_bytes)} bytes")
+                logger.info(f"✅ Audio generado: {len(audio_bytes)} bytes en {attempt + 1} intento(s)")
                 return audio_bytes
                 
             except asyncio.TimeoutError:
                 logger.error(f"⏱️ Timeout en intento {attempt + 1}/3")
                 if attempt < 2:
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.2)
                     continue
                 raise Exception("ElevenLabs timeout después de 3 intentos")
             except Exception as e:
                 logger.error(f"❌ Error en intento {attempt + 1}/3: {e}")
                 if attempt < 2:
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.2)
                     continue
                 raise

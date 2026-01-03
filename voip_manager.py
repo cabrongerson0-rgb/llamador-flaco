@@ -286,22 +286,22 @@ class VoIPManager:
                 audio_url = f"{settings.webhook_url}/audio/{audio_filename}"
                 logger.info(f"📡 URL lista: {audio_url}")
                 
-                # Gather: VOZ + DTMF - OPTIMIZADO PARA ESCUCHAR MEJOR
+                # Gather: VOZ + DTMF - OPTIMIZADO PARA ESCUCHA PERFECTA
                 gather = Gather(
                     input='speech dtmf',  # VOZ + TECLADO simultáneo
                     language=settings.language,  # es-CO (Español Colombia)
-                    timeout=settings.gather_timeout,  # 4 segundos - tiempo para empezar
-                    speech_timeout=settings.speech_timeout,  # auto - escucha hasta que termines
+                    timeout=settings.gather_timeout,  # 5 segundos - tiempo para empezar
+                    speech_timeout=settings.speech_timeout,  # 1 segundo - silencio indica fin
                     speechTimeout=settings.speech_timeout,
-                    maxSpeechTime=settings.max_speech_time,  # 45 segundos
+                    maxSpeechTime=settings.max_speech_time,  # 60 segundos
                     action='/voice/process_speech',
                     method='POST',
                     profanityFilter=False,  # Sin filtro
                     enhanced=True,  # Reconocimiento mejorado
                     speech_model='phone_call',  # Optimizado para llamadas
                     numDigits=20,  # 20 dígitos máximo
-                    # HINTS COLOMBIA - Palabras comunes para mejor reconocimiento
-                    hints='sí, si, claro, no, bueno, bien, mal, regular, listo, perfecto, correcto, gracias, por favor, aló, hola, diga, oiga, espere, momento, ya, ahora, cómo, cuándo, dónde, qué, cuál, quién, cero, uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, diez, documento, cédula, nombre, teléfono, celular, correo, banco, Bancolombia, cuenta, tarjeta, app, aplicación, descargar, instalar, cámara, foto, entiendo, entendido, pues, vea, aja, ok, vale, dale, confirmar, activar, verificar, SOY YO, biometría, rostro, identidad'
+                    # HINTS EXTENDIDOS - Palabras y frases colombianas completas
+                    hints='sí claro, no gracias, hola buenas, aló buenas, cómo estás, bien gracias, perfecto listo, entiendo, si señora, si señor, correcto, exacto, aja, pues sí, obvio, dale, listo entonces, bueno entonces, ok perfecto, de una, parcero, hermano, compa, dígame, cuéntame, mire, vea, espere un momento, un segundo, ya ya, ahora sí, banco, Bancolombia, Davivienda, cédula, documento, identidad, nombre completo, apellidos, teléfono, celular, correo electrónico, clave, contraseña, usuario, app, aplicación, descargar, instalar, activar, verificar, confirmar, biometría, rostro, selfie, foto, cámara, SOY YO, números: cero, uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, diez, once, doce, trece, catorce, quince'
                 )
                 
                 # Play ElevenLabs dentro de Gather
@@ -309,7 +309,7 @@ class VoIPManager:
                 response.append(gather)
                 response.redirect('/voice/process_speech')
                 
-                logger.info(f"✅ ElevenLabs OK ({len(audio_bytes)} bytes) - DTMF activado")
+                logger.info(f"✅ ElevenLabs OK ({len(audio_bytes)} bytes) - Reconocimiento optimizado")
                 return str(response)
                 
             except Exception as e:
