@@ -2,7 +2,8 @@
 Síntesis de voz con ElevenLabs
 Genera audio de alta calidad para llamadas telefónicas
 """
-from elevenlabs import generate, set_api_key, Voice, VoiceSettings
+from elevenlabs.client import ElevenLabs
+from elevenlabs import VoiceSettings
 from loguru import logger
 from config import settings
 import os
@@ -27,10 +28,11 @@ class VoiceSynthesizer:
         self.voice_id = settings.voice_bot
         self.audio_dir = "audio_cache"
         self._settings: Optional[VoiceSettings] = None
+        self.client: Optional[ElevenLabs] = None
     
     async def initialize(self) -> None:
         """Configurar API y directorio"""
-        set_api_key(settings.elevenlabs_api_key)
+        self.client = ElevenLabs(api_key=settings.elevenlabs_api_key)
         os.makedirs(self.audio_dir, exist_ok=True)
         
         self._settings = VoiceSettings(
@@ -65,16 +67,17 @@ class VoiceSynthesizer:
                     loop.run_in_executor(
                         None,
                         partial(
-                            generate,
+                            self.client.generate,
                             text=text,
-                            voice=Voice(voice_id=self.voice_id, settings=self._settings),
+                            voice=self.voice_id,
+                            voice_settings=self._settings,
                             model="eleven_turbo_v2_5"
                         )
                     ),
                     timeout=self.TIMEOUT
                 )
                 
-                audio_bytes = audio if isinstance(audio, bytes) else b''.join(audio)
+                audio_bytes = b''.join(audio) if hasattr(audio, '__iter__') and not isinstance(audio, bytes) else audio
                 
                 if not audio_bytes or len(audio_bytes) < self.MIN_AUDIO_SIZE:
                     raise Exception(f"Audio pequeño: {len(audio_bytes)} bytes")
